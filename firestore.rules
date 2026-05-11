@@ -1,0 +1,86 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Accounts — users can only read/write their own
+    match /accounts/{docId} {
+      allow read, delete: if request.auth != null
+                          && resource.data.uid == request.auth.uid;
+
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasAll(["uid", "name", "type", "currency", "initialBalance", "createdAt"])
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.initialBalance is number
+                    && request.resource.data.initialBalance >= 0;
+
+      allow update: if false;
+    }
+
+    // Income entries — scoped to the owning user and their account
+    match /income/{docId} {
+      allow read, delete: if request.auth != null
+                          && resource.data.uid == request.auth.uid;
+
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasAll(["uid", "accountId", "source", "amount", "createdAt"])
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount > 0;
+
+      allow update: if false;
+    }
+
+    // Expense entries — scoped to the owning user
+    match /expenses/{docId} {
+      allow read, delete: if request.auth != null
+                          && resource.data.uid == request.auth.uid;
+
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasAll(["uid", "accountId", "category", "amount", "createdAt"])
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount > 0;
+
+      allow update: if false;
+    }
+
+    // Monthly recurring expenses
+    match /monthly_expenses/{docId} {
+      allow read, delete: if request.auth != null
+                          && resource.data.uid == request.auth.uid;
+
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasAll(["uid", "name", "category", "amount", "accountId", "dueDay"])
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount > 0
+                    && request.resource.data.dueDay is int
+                    && request.resource.data.dueDay >= 1
+                    && request.resource.data.dueDay <= 31;
+
+      allow update: if false;
+    }
+
+    // Monthly payment records (paid/unpaid tracking per month)
+    match /monthly_payments/{docId} {
+      allow read, delete: if request.auth != null
+                          && resource.data.uid == request.auth.uid;
+
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasAll(["uid", "monthlyExpenseId", "accountId", "amount", "month", "year"])
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount > 0;
+
+      allow update: if false;
+    }
+
+    // Deny everything else by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
