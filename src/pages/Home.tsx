@@ -214,10 +214,10 @@ export default function HomePage() {
 
   const monthStart = new Date(currentYear, currentMonth - 1, 1);
   const incomeThisMonth = income
-    .filter((e) => e.createdAt?.toDate() >= monthStart)
+    .filter((e) => (e.createdAt?.toMillis() ?? 0) >= monthStart.getTime())
     .reduce((s, e) => s + e.amount, 0);
   const expensesThisMonth = expenses
-    .filter((e) => e.createdAt?.toDate() >= monthStart)
+    .filter((e) => (e.createdAt?.toMillis() ?? 0) >= monthStart.getTime())
     .reduce((s, e) => s + e.amount, 0);
   const monthlyPaidThisMonth = monthlyPayments.reduce(
     (s, p) => s + p.amount,
@@ -324,7 +324,11 @@ export default function HomePage() {
             </p>
           )}
           <p className="text-gray-400 text-xs mt-1">
-            {income.filter((e) => e.createdAt?.toDate() >= monthStart).length}{" "}
+            {
+              income.filter(
+                (e) => (e.createdAt?.toMillis() ?? 0) >= monthStart.getTime(),
+              ).length
+            }{" "}
             entries
           </p>
         </div>
