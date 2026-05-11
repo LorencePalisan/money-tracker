@@ -48,17 +48,6 @@ const CURRENCIES = [
   { code: "KRW", symbol: "₩", label: "Korean Won" },
 ];
 
-const SOURCE_SUGGESTIONS = [
-  "Salary",
-  "Freelance",
-  "Business",
-  "Investment",
-  "Gift",
-  "Bonus",
-  "Rental",
-  "Other",
-];
-
 interface Account {
   id: string;
   uid: string;
